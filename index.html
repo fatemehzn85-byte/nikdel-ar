@@ -94,6 +94,7 @@ dialog .x{position:absolute;top:10px;left:10px;z-index:2;background:rgba(0,0,0,.
     <button class="btn primary" id="arBtn">مشاهده در واقعیت افزوده (AR)</button>
     <button class="btn" id="rotBtn">چرخش خودکار</button>
     <button class="btn" id="resetBtn">بازنشانی زاویه</button>
+    <button class="btn" id="svBtn" hidden>AR با Scene Viewer گوگل (نیاز به اینترنت)</button>
     <button class="btn" id="instBtn" hidden>نصب برنامه روی این دستگاه</button>
     <button class="btn" id="vidBtn" hidden>ویدیوی نمایش AR</button>
   </div>
@@ -125,6 +126,17 @@ dialog .x{position:absolute;top:10px;left:10px;z-index:2;background:rgba(0,0,0,.
   });
   var ua = navigator.userAgent;
   var isAndroid = /Android/i.test(ua);
+  var androidPwa = (MODE === 'pwa' && isAndroid);
+  if (androidPwa){ mv.setAttribute('ar-modes', 'webxr'); }
+  var xrInfo = '';
+  if (androidPwa){
+    if (navigator.xr && navigator.xr.isSessionSupported){
+      navigator.xr.isSessionSupported('immersive-ar').then(function(ok){
+        xrInfo = ok ? 'WebXR: پشتیبانی می‌شود ✓' : 'WebXR: روی این مرورگر/گوشی پشتیبانی نمی‌شود ✗';
+        refreshAR();
+      }).catch(function(){ xrInfo = 'WebXR: بررسی ناموفق'; refreshAR(); });
+    } else { xrInfo = 'WebXR: در این مرورگر وجود ندارد ✗'; }
+  }
   var NOTE_OK = 'ابعاد نمایش‌داده‌شده با اندازه واقعی محصول مطابقت دارد. دوربین را آرام روی دیوار یا محل نصب بگیرید تا سطح شناسایی شود.';
   function sceneViewerUrl(){
     var glb = new URL('decorative_curtain.glb', location.href).href;
@@ -136,11 +148,12 @@ dialog .x{position:absolute;top:10px;left:10px;z-index:2;background:rgba(0,0,0,.
   function refreshAR(){
     var can = mv.canActivateAR;
     var note = $('arNote'); note.hidden = false;
+    if (androidPwa){ $('svBtn').hidden = false; }
     if (can){
-      $('arBtn').hidden = false; note.textContent = NOTE_OK;
-    } else if (MODE === 'pwa' && isAndroid){
+      $('arBtn').hidden = false; note.textContent = (xrInfo ? xrInfo + ' — ' : '') + NOTE_OK;
+    } else if (androidPwa){
       $('arBtn').hidden = false;
-      note.textContent = 'اگر دکمه AR باز نشد، برنامه‌ی «Google Play Services for AR» را نصب یا به‌روزرسانی کنید. حالت جایگزین (Scene Viewer) به اینترنت نیاز دارد.';
+      note.textContent = (xrInfo ? xrInfo + ' — ' : '') + 'اگر دکمه‌ی اول کار نکرد، دکمه‌ی Scene Viewer را امتحان کنید. اگر برنامه‌ی Google بسته می‌شود، Google و Google Play Services for AR را به‌روزرسانی کنید.';
     } else if (MODE === 'single'){
       note.textContent = 'در این حالت (فایل مستقل) فقط پیش‌نمایش سه‌بعدی فعال است. واقعیت افزوده روی آیفون/آیپد از طریق Quick Look و در نسخه نصب‌شده (PWA) روی اندروید فعال می‌شود.';
     } else {
@@ -186,16 +199,9 @@ dialog .x{position:absolute;top:10px;left:10px;z-index:2;background:rgba(0,0,0,.
     return 'intent://' + u.host + u.pathname + '#Intent;scheme=https;package=com.android.chrome;end;';
   }
   $('arBtn').addEventListener('click', function(){
-    if (MODE === 'pwa' && isAndroid){
-      /* Online: Google Scene Viewer (most robust inside an installed app). Offline: WebXR. */
-      if (navigator.onLine){ location.href = sceneViewerUrl(); return; }
-      if (mv.canActivateAR){ mv.activateAR(); return; }
-      $('arNote').hidden = false;
-      $('arNote').textContent = 'اینترنت قطع است و AR آفلاین (WebXR) روی این دستگاه فعال نیست. برای AR اینترنت را وصل کنید.';
-      return;
-    }
     if (mv.canActivateAR){ mv.activateAR(); } else { refreshAR(); }
   });
+  $('svBtn').addEventListener('click', function(){ location.href = sceneViewerUrl(); });
   if (MODE === 'pwa' && isAndroid && standalone){
     var a = document.createElement('a');
     a.className = 'btn'; a.href = chromeUrl(); a.textContent = 'باز کردن در Chrome (اگر AR در برنامه باز نشد)';
