@@ -180,11 +180,27 @@ dialog .x{position:absolute;top:10px;left:10px;z-index:2;background:rgba(0,0,0,.
     }).catch(function(err){ window.__fetchInfo = 'fetch failed: ' + err.message; });
   } catch(e){}
 
+  var standalone = window.matchMedia && matchMedia('(display-mode: standalone)').matches;
+  function chromeUrl(){
+    var u = new URL(location.href);
+    return 'intent://' + u.host + u.pathname + '#Intent;scheme=https;package=com.android.chrome;end;';
+  }
   $('arBtn').addEventListener('click', function(){
-    if (mv.canActivateAR){ mv.activateAR(); }
-    else if (MODE === 'pwa' && isAndroid){ location.href = sceneViewerUrl(); }
-    else { refreshAR(); }
+    if (MODE === 'pwa' && isAndroid){
+      /* Online: Google Scene Viewer (most robust inside an installed app). Offline: WebXR. */
+      if (navigator.onLine){ location.href = sceneViewerUrl(); return; }
+      if (mv.canActivateAR){ mv.activateAR(); return; }
+      $('arNote').hidden = false;
+      $('arNote').textContent = 'اینترنت قطع است و AR آفلاین (WebXR) روی این دستگاه فعال نیست. برای AR اینترنت را وصل کنید.';
+      return;
+    }
+    if (mv.canActivateAR){ mv.activateAR(); } else { refreshAR(); }
   });
+  if (MODE === 'pwa' && isAndroid && standalone){
+    var a = document.createElement('a');
+    a.className = 'btn'; a.href = chromeUrl(); a.textContent = 'باز کردن در Chrome (اگر AR در برنامه باز نشد)';
+    document.querySelector('.actions').appendChild(a);
+  }
 
   var rot = $('rotBtn');
   rot.addEventListener('click', function(){
