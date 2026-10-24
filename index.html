@@ -34,7 +34,7 @@ h1{font-size:26px;font-weight:700;margin:2px 0 0;letter-spacing:-.2px}
 .sub{font-size:13.5px;color:var(--mute);margin:0}
 .rule{width:56px;height:1px;background:var(--gold);opacity:.7;margin:2px 0}
 .stage{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--line);
-  background:radial-gradient(circle at 50% 38%,#34302b 0%,#1d1b19 70%);
+  background:radial-gradient(circle at 50% 40%,#9a9285 0%,#6a6358 55%,#4a453e 100%);
   box-shadow:0 30px 60px -30px rgba(0,0,0,.7)}
 model-viewer{display:block;width:100%;height:clamp(340px,62vh,640px);--poster-color:transparent;background:transparent;outline:none}
 .loader{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
@@ -94,6 +94,7 @@ dialog .x{position:absolute;top:10px;left:10px;z-index:2;background:rgba(0,0,0,.
     <button class="btn primary" id="arBtn">مشاهده در واقعیت افزوده (AR)</button>
     <button class="btn" id="rotBtn">چرخش خودکار</button>
     <button class="btn" id="resetBtn">بازنشانی زاویه</button>
+    <button class="btn" id="instBtn" hidden>نصب برنامه روی این دستگاه</button>
     <button class="btn" id="vidBtn" hidden>ویدیوی نمایش AR</button>
   </div>
 
@@ -156,9 +157,28 @@ dialog .x{position:absolute;top:10px;left:10px;z-index:2;background:rgba(0,0,0,.
       tries++; if (refreshAR() || tries > 20) clearInterval(iv);
     }, 400);
   });
-  mv.addEventListener('error', function(){
-    $('loader').firstElementChild.textContent = 'بارگذاری مدل ناموفق بود';
+  function showErr(msg){
+    var l = $('loader'); l.classList.remove('done'); l.style.opacity = 1;
+    l.firstElementChild.textContent = 'بارگذاری مدل ناموفق بود';
+    var d = document.createElement('div');
+    d.style.cssText = 'direction:ltr;font-size:11px;max-width:86%;text-align:center;word-break:break-word;color:#d9a59a';
+    d.textContent = msg; l.appendChild(d);
+  }
+  mv.addEventListener('error', function(e){
+    var m = (e.detail && (e.detail.sourceError && e.detail.sourceError.message || e.detail.type)) || 'unknown error';
+    showErr(m);
   });
+  /* if nothing arrives after 25s, tell the user what to try instead of spinning forever */
+  setTimeout(function(){
+    if (!mv.loaded && $('barfill').style.width === '0px' || !mv.loaded && $('barfill').style.width === ''){
+      showErr('No data received for the model in 25s (network or hosting issue). fetch: ' + (window.__fetchInfo || 'pending'));
+    }
+  }, 25000);
+  try {
+    fetch('decorative_curtain.glb', {method:'HEAD'}).then(function(r){
+      window.__fetchInfo = 'HEAD ' + r.status + ' type=' + r.headers.get('content-type') + ' len=' + r.headers.get('content-length');
+    }).catch(function(err){ window.__fetchInfo = 'fetch failed: ' + err.message; });
+  } catch(e){}
 
   $('arBtn').addEventListener('click', function(){
     if (mv.canActivateAR){ mv.activateAR(); }
@@ -189,6 +209,21 @@ dialog .x{position:absolute;top:10px;left:10px;z-index:2;background:rgba(0,0,0,.
   function closeV(){ vid.pause(); dlg.close(); }
   $('vidClose').addEventListener('click', closeV);
   dlg.addEventListener('click', function(e){ if(e.target === dlg) closeV(); });
+
+  /* Install button (Android Chrome) */
+  var deferred = null;
+  window.addEventListener('beforeinstallprompt', function(e){
+    e.preventDefault(); deferred = e; $('instBtn').hidden = false;
+  });
+  $('instBtn').addEventListener('click', function(){
+    if (!deferred) return;
+    deferred.prompt();
+    deferred.userChoice.then(function(){ deferred = null; $('instBtn').hidden = true; });
+  });
+  window.addEventListener('appinstalled', function(){
+    var n = $('arNote'); n.hidden = false;
+    n.textContent = 'نصب شد. اگر آیکون روی صفحه اصلی نیامد، در لیست همه‌ی برنامه‌ها (App drawer) دنبال «Nikdel AR» بگردید.';
+  });
 
   /* PWA: register service worker + show offline-ready badge */
   if (MODE === 'pwa' && 'serviceWorker' in navigator){
