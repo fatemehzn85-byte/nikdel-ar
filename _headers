@@ -1,0 +1,6 @@
+/sw.js
+  Cache-Control: no-cache
+/*.usdz
+  Content-Type: model/vnd.usdz+zip
+/*.glb
+  Content-Type: model/gltf-binary

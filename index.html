@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#121212">
+<title>Nikdel — پرده تزئینی</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Nikdel AR">
+<style>
+@font-face{font-family:"Vazirmatn";font-weight:400;font-style:normal;font-display:swap;src:url(Vazirmatn-Regular.woff2) format("woff2")}
+@font-face{font-family:"Vazirmatn";font-weight:700;font-style:normal;font-display:swap;src:url(Vazirmatn-Bold.woff2) format("woff2")}
+
+:root{
+  --bg:#121212; --bg2:#1b1a19; --ink:#f1ece4; --mute:#a59f95; --line:rgba(241,236,228,.14);
+  --gold:#cdb995; --gold2:#e6d8bb;
+  --safe-t:env(safe-area-inset-top,0px); --safe-b:env(safe-area-inset-bottom,0px);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--ink);min-height:100%}
+body{font-family:"Vazirmatn",Tahoma,"Segoe UI",sans-serif;
+  background:radial-gradient(1200px 700px at 50% -10%,#2a2622 0%,var(--bg) 60%);
+  padding:calc(var(--safe-t) + 18px) 18px calc(var(--safe-b) + 18px);
+  display:flex;flex-direction:column;align-items:center;min-height:100vh}
+.wrap{width:100%;max-width:980px;display:flex;flex-direction:column;gap:16px;flex:1}
+header{display:flex;flex-direction:column;align-items:center;gap:10px;padding-top:6px;text-align:center}
+header img{width:74px;height:auto;display:block;opacity:.95}
+h1{font-size:26px;font-weight:700;margin:2px 0 0;letter-spacing:-.2px}
+.sub{font-size:13.5px;color:var(--mute);margin:0}
+.rule{width:56px;height:1px;background:var(--gold);opacity:.7;margin:2px 0}
+.stage{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--line);
+  background:radial-gradient(circle at 50% 38%,#34302b 0%,#1d1b19 70%);
+  box-shadow:0 30px 60px -30px rgba(0,0,0,.7)}
+model-viewer{display:block;width:100%;height:clamp(340px,62vh,640px);--poster-color:transparent;background:transparent;outline:none}
+.loader{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  color:var(--mute);font-size:13px;pointer-events:none;transition:opacity .4s}
+.loader.done{opacity:0}
+.bar{width:160px;height:2px;background:var(--line);border-radius:2px;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:var(--gold);transition:width .2s}
+.hint{text-align:center;font-size:12px;color:var(--mute);margin:-6px 0 0}
+.actions{display:flex;flex-wrap:wrap;gap:10px;justify-content:center}
+button.btn,a.btn{font-family:inherit;font-size:15px;font-weight:600;border-radius:14px;padding:14px 22px;cursor:pointer;
+  border:1px solid var(--line);background:rgba(255,255,255,.04);color:var(--ink);min-height:50px;text-decoration:none;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .12s,background .2s}
+button.btn:active{transform:scale(.97)}
+button.btn.primary{background:linear-gradient(180deg,var(--gold2),var(--gold));color:#1a1713;border-color:transparent;flex:1 1 260px;max-width:420px;font-size:16px}
+button.btn.on{background:rgba(205,185,149,.18);border-color:var(--gold)}
+.note{font-size:12.5px;line-height:1.9;color:var(--mute);text-align:center;margin:0 auto;max-width:620px}
+.pill{align-self:center;font-size:11.5px;color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:4px 12px;display:none}
+.pill.ok{display:inline-block;color:var(--gold2)}
+footer{text-align:center;font-size:11.5px;color:#6f6a62;padding-top:6px}
+[hidden]{display:none!important}
+dialog{border:0;padding:0;background:#000;border-radius:16px;max-width:min(94vw,900px);width:100%;overflow:hidden}
+dialog::backdrop{background:rgba(0,0,0,.8)}
+dialog video{width:100%;display:block;max-height:80vh;background:#000}
+dialog .x{position:absolute;top:10px;left:10px;z-index:2;background:rgba(0,0,0,.55);color:#fff;border:1px solid rgba(255,255,255,.3);border-radius:50%;width:38px;height:38px;font-size:18px;cursor:pointer}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <img src="nikdel_logo.png" alt="Nikdel Design Studio">
+    <div class="rule"></div>
+    <h1>پرده تزئینی</h1>
+    <p class="sub">پیش‌نمایش سه‌بعدی و مشاهده در فضای واقعی شما</p>
+    <span class="pill" id="pill"></span>
+  </header>
+
+  <div class="stage">
+    <model-viewer id="mv"
+      alt="Nikdel — پرده تزئینی"
+      src="decorative_curtain.glb" ios-src="decorative_curtain.usdz"
+      ar-modes="webxr scene-viewer quick-look"
+      ar-scale="fixed"
+      camera-controls
+      disable-zoom
+      camera-orbit="0deg 75deg auto"
+      min-camera-orbit="auto 55deg auto"
+      max-camera-orbit="auto 100deg auto"
+      shadow-intensity="1"
+      exposure="1"
+      interaction-prompt="none">
+    </model-viewer>
+    <div class="loader" id="loader"><span>در حال آماده‌سازی مدل…</span><div class="bar"><i id="barfill"></i></div></div>
+  </div>
+  <p class="hint">برای چرخاندن مدل، با یک انگشت بکشید</p>
+
+  <div class="actions">
+    <button class="btn primary" id="arBtn">مشاهده در واقعیت افزوده (AR)</button>
+    <button class="btn" id="rotBtn">چرخش خودکار</button>
+    <button class="btn" id="resetBtn">بازنشانی زاویه</button>
+    <button class="btn" id="vidBtn" hidden>ویدیوی نمایش AR</button>
+  </div>
+
+  <p class="note" id="arNote" hidden></p>
+
+  <footer>Nikdel Design Studio</footer>
+</div>
+
+<dialog id="vidDlg"><button class="x" id="vidClose" aria-label="بستن">✕</button><video id="vid" controls playsinline preload="none"></video></dialog>
+
+<script src="model-viewer-umd.min.js"></script>
+
+<script>
+(function(){
+  var MODE = "pwa";
+  var mv = document.getElementById('mv');
+  var $ = function(id){return document.getElementById(id)};
+
+  if (MODE === 'single' && window.__GLB_B64){
+    var bin = atob(window.__GLB_B64), n = bin.length, u8 = new Uint8Array(n);
+    for (var i=0;i<n;i++) u8[i] = bin.charCodeAt(i);
+    window.__GLB_B64 = null;
+    mv.src = URL.createObjectURL(new Blob([u8], {type:'model/gltf-binary'}));
+  }
+
+  mv.addEventListener('progress', function(e){
+    $('barfill').style.width = (e.detail.totalProgress*100)+'%';
+  });
+  var ua = navigator.userAgent;
+  var isAndroid = /Android/i.test(ua);
+  var NOTE_OK = 'ابعاد نمایش‌داده‌شده با اندازه واقعی محصول مطابقت دارد. دوربین را آرام روی دیوار یا محل نصب بگیرید تا سطح شناسایی شود.';
+  function sceneViewerUrl(){
+    var glb = new URL('decorative_curtain.glb', location.href).href;
+    var back = encodeURIComponent(location.href);
+    return 'intent://arvr.google.com/scene-viewer/1.0?file=' + glb +
+      '&mode=ar_preferred&resizable=false#Intent;scheme=https;package=com.google.ar.core;' +
+      'action=android.intent.action.VIEW;S.browser_fallback_url=' + back + ';end;';
+  }
+  function refreshAR(){
+    var can = mv.canActivateAR;
+    var note = $('arNote'); note.hidden = false;
+    if (can){
+      $('arBtn').hidden = false; note.textContent = NOTE_OK;
+    } else if (MODE === 'pwa' && isAndroid){
+      $('arBtn').hidden = false;
+      note.textContent = 'اگر دکمه AR باز نشد، برنامه‌ی «Google Play Services for AR» را نصب یا به‌روزرسانی کنید. حالت جایگزین (Scene Viewer) به اینترنت نیاز دارد.';
+    } else if (MODE === 'single'){
+      note.textContent = 'در این حالت (فایل مستقل) فقط پیش‌نمایش سه‌بعدی فعال است. واقعیت افزوده روی آیفون/آیپد از طریق Quick Look و در نسخه نصب‌شده (PWA) روی اندروید فعال می‌شود.';
+    } else {
+      $('arBtn').hidden = false;
+      note.textContent = 'واقعیت افزوده روی این دستگاه یا مرورگر پشتیبانی نمی‌شود. برای AR از آیفون/آیپد یا گوشی اندروید دارای ARCore استفاده کنید.';
+    }
+    return can;
+  }
+  mv.addEventListener('load', function(){
+    $('loader').classList.add('done');
+    refreshAR();
+    /* model-viewer decides AR mode asynchronously: re-check for a few seconds */
+    var tries = 0, iv = setInterval(function(){
+      tries++; if (refreshAR() || tries > 20) clearInterval(iv);
+    }, 400);
+  });
+  mv.addEventListener('error', function(){
+    $('loader').firstElementChild.textContent = 'بارگذاری مدل ناموفق بود';
+  });
+
+  $('arBtn').addEventListener('click', function(){
+    if (mv.canActivateAR){ mv.activateAR(); }
+    else if (MODE === 'pwa' && isAndroid){ location.href = sceneViewerUrl(); }
+    else { refreshAR(); }
+  });
+
+  var rot = $('rotBtn');
+  rot.addEventListener('click', function(){
+    var on = mv.hasAttribute('auto-rotate');
+    if (on){ mv.removeAttribute('auto-rotate'); } else { mv.setAttribute('auto-rotate',''); }
+    rot.classList.toggle('on', !on);
+  });
+  $('resetBtn').addEventListener('click', function(){
+    mv.cameraOrbit = '0deg 75deg auto';
+    mv.resetTurntableRotation && mv.resetTurntableRotation();
+  });
+
+  /* Optional demo video: appears only if demo.mp4 exists next to this page */
+  var probe = document.createElement('video');
+  probe.preload = 'metadata';
+  probe.addEventListener('loadedmetadata', function(){ $('vidBtn').hidden = false; });
+  probe.src = 'demo.mp4';
+  var dlg = $('vidDlg'), vid = $('vid');
+  $('vidBtn').addEventListener('click', function(){
+    vid.src = 'demo.mp4'; dlg.showModal(); vid.play().catch(function(){});
+  });
+  function closeV(){ vid.pause(); dlg.close(); }
+  $('vidClose').addEventListener('click', closeV);
+  dlg.addEventListener('click', function(e){ if(e.target === dlg) closeV(); });
+
+  /* PWA: register service worker + show offline-ready badge */
+  if (MODE === 'pwa' && 'serviceWorker' in navigator){
+    var pill = $('pill');
+    navigator.serviceWorker.register('sw.js').then(function(){
+      return navigator.serviceWorker.ready;
+    }).then(function(){
+      return caches.keys();
+    }).then(function(keys){
+      if (keys.length){ pill.textContent = '✓ نسخه آفلاین آماده است'; pill.classList.add('ok'); }
+    }).catch(function(){});
+    window.addEventListener('message', function(){});
+    navigator.serviceWorker.addEventListener('message', function(e){
+      if (e.data === 'cached'){ pill.textContent = '✓ نسخه آفلاین آماده است'; pill.classList.add('ok'); }
+    });
+  }
+})();
+</script>
+</body>
+</html>
