@@ -1,4 +1,4 @@
-const CACHE = 'nikdel-curtain-v6';
+const CACHE = 'nikdel-curtain-v7';
 const CORE = [
   './', 'index.html', 'manifest.webmanifest',
   'model-viewer-umd.min.js',

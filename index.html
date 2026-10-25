@@ -75,6 +75,7 @@ dialog .x{position:absolute;top:10px;left:10px;z-index:2;background:rgba(0,0,0,.
     <model-viewer id="mv"
       alt="Nikdel — پرده تزئینی"
       src="decorative_curtain.glb" ios-src="decorative_curtain.usdz"
+      ar
       ar-modes="webxr scene-viewer quick-look"
       ar-scale="fixed"
       camera-controls
@@ -137,7 +138,7 @@ dialog .x{position:absolute;top:10px;left:10px;z-index:2;background:rgba(0,0,0,.
       }).catch(function(){ xrInfo = 'WebXR: بررسی ناموفق'; refreshAR(); });
     } else { xrInfo = 'WebXR: در این مرورگر وجود ندارد ✗'; }
   }
-  var NOTE_OK = 'ابعاد نمایش‌داده‌شده با اندازه واقعی محصول مطابقت دارد. دوربین را آرام روی دیوار یا محل نصب بگیرید تا سطح شناسایی شود.';
+  var NOTE_OK = 'بعد از باز شدن دوربین، گوشی را ۵ تا ۱۰ ثانیه آرام روی کف حرکت دهید تا سطح شناسایی شود، سپس مدل را قرار دهید.';
   function sceneViewerUrl(){
     var glb = new URL('decorative_curtain.glb', location.href).href;
     var back = encodeURIComponent(location.href);
