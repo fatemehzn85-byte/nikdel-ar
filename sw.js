@@ -1,8 +1,7 @@
-const CACHE = 'nikdel-curtain-v7';
+const CACHE = 'nikdel-curtain-v8';
 const CORE = [
   './', 'index.html', 'manifest.webmanifest',
   'model-viewer-umd.min.js',
-  'decorative_curtain.glb', 'decorative_curtain.usdz',
   'nikdel_logo.png', 'icon-192.png', 'icon-512.png', 'apple-touch-icon.png'
 ];
 const OPTIONAL = ['demo.mp4'];
